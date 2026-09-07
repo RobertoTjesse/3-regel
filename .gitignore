@@ -1,0 +1,34 @@
+# Data — large geospatial artefacts, never committed.
+# The real source data lives on the network share (config.VIEWANALYSE_DIR);
+# these local folders only ever hold generated/scratch files.
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/dem_tiles/
+!data/interim/viewshed_tiles/
+data/interim/dem_tiles/*
+!data/interim/dem_tiles/.gitkeep
+data/interim/viewshed_tiles/*
+!data/interim/viewshed_tiles/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Machine-specific settings (real paths, never shared) — see config_local.example.py
+etl/config_local.py
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
