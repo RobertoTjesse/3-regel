@@ -285,21 +285,21 @@ quasi-continuous count field at zoomed-out levels), not `NEAREST` (which
 would just pick one sample pixel per block); this only affects the
 overview levels, never the full-resolution pixel values.
 
-## 11. Known data-quality issue: 12 corrupted source DEMs (as of 2026-09-07)
+## 11. Resolved data-quality issue: 12 corrupted source DEMs
 
-12 of 52 municipality source DEMs (`Barendrecht`, `Dordrecht`,
-`Goeree-Overflakkee`, `Gorinchem`, `Hardinxveld-Giessendam`,
-`Hellevoetsluis`, `Hendrik-Ido-Ambacht`, `Hoeksche Waard`, `Nissewaard`,
-`Papendrecht`, `Sliedrecht`, `Zwijndrecht`) were found to be 0-3.4% real
-elevation data — the rest exactly `0.0`, with **no NoData flag set**, so
-the corruption was invisible from file metadata alone (only direct pixel
-inspection revealed it).
+**Status: fixed 2026-09-07.** 12 of 52 municipality source DEMs
+(`Barendrecht`, `Dordrecht`, `Goeree-Overflakkee`, `Gorinchem`,
+`Hardinxveld-Giessendam`, `Hellevoetsluis`, `Hendrik-Ido-Ambacht`,
+`Hoeksche Waard`, `Nissewaard`, `Papendrecht`, `Sliedrecht`, `Zwijndrecht`)
+were found to be 0-3.4% real elevation data — the rest exactly `0.0`, with
+**no NoData flag set**, so the corruption was invisible from file metadata
+alone (only direct pixel inspection revealed it).
 
-**Why this is dangerous, not just "empty"**: a DEM that's uniformly zero
+**Why this was dangerous, not just "empty"**: a DEM that's uniformly zero
 looks to the viewshed algorithm like perfectly flat terrain — nothing ever
-blocks a line of sight. The pipeline still runs to completion, reports zero
-errors, and produces a plausible-looking, spatially-varying output (since
-"trees within 30m" alone still correlates with tree density). There is no
+blocks a line of sight. The pipeline still ran to completion, reported zero
+errors, and produced a plausible-looking, spatially-varying output (since
+"trees within 30m" alone still correlates with tree density). There was no
 automatic way to distinguish that degenerate case from a real result by
 looking at the output raster.
 
@@ -310,15 +310,21 @@ flagged NoData value — most likely the entire raster was void for these
 (`Geo_raster.TOPOGRAFIE.AHN4_05M_RUW`, an enterprise SDE raster) has these
 areas covered correctly.
 
-**Fix in progress**: `sde_reexport/export_from_sde.py` (an arcpy script,
-run inside ArcGIS Pro since this pipeline's own GDAL-based tooling has no
-SDE driver access) re-clips the 12 affected extents directly from the SDE
-source, explicitly detecting and preserving its real NoData value (not
-assuming one). A `gdal_translate` finishing pass then applies this
-pipeline's standard TIFF layout (§9: DEFLATE+predictor 3, 512x512 internal
-tiles, BigTIFF where needed) before the corrected files replace the empty
-ones. `config.CORRUPTED_DEM_MUNICIPALITIES` excludes affected municipalities
-from all processing until this is done, regardless of `MUNICIPALITIES`.
+**Fix applied**: `sde_reexport/export_from_sde.py` (an arcpy script, run
+inside ArcGIS Pro since this pipeline's own GDAL-based tooling has no SDE
+driver access) re-clipped the 12 affected extents directly from the SDE
+source, explicitly detecting and preserving its real NoData value (`-9999`
+— the source had none set either, so this pipeline's own fallback sentinel
+was used) instead of assuming one. A `gdal_translate` finishing pass then
+applied this pipeline's standard TIFF layout (§9: DEFLATE+predictor 3,
+512x512 internal tiles, BigTIFF where needed) before the corrected files
+replaced the empty ones on R:\. Verified post-fix: all 12 show real,
+correctly NoData-flagged elevation data (54-94% valid coverage per
+municipality — the lower end, e.g. Dordrecht and Goeree-Overflakkee, are
+river/island municipalities with genuinely large water areas correctly
+masked as NoData within their bounding boxes, not a residual problem).
+`config.CORRUPTED_DEM_MUNICIPALITIES` is now empty; these 12 are back in
+normal rotation.
 
 ## 12. Current parameters at a glance
 

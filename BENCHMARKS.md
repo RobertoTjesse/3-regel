@@ -50,7 +50,10 @@ Do not edit by hand — regenerate instead.
 | Pijnacker-Nootdorp | 300 | 218868 | 117.0 | 105.7 | 29.2 | 4m11.9s | 2,071 |
 | Ridderkerk | 210 | 174717 | 103.6 | 83.8 | 21.0 | 3m28.4s | 2,085 |
 | Rijswijk | 110 | 110936 | 38.3 | 61.9 | 12.4 | 1m52.6s | 1,792 |
+| Rotterdam | 3404 | 1857302 | 1382.4 | 927.0 | 367.6 | 44m37.0s | 2,004 |
+| Schiedam | 150 | 98320 | 107.4 | 50.3 | 15.0 | 2m52.7s | 1,955 |
+| Teylingen | 255 | 145698 | 70.3 | 71.8 | 24.2 | 2m46.3s | 2,029 |
 
-**Total time across all listed municipalities: 120m47.7s.**
+**Total time across all listed municipalities: 171m03.7s.**
 
 Note: Papendrecht and 's-Gravenhage `tile_dem` timings are approximate (measured before per-stage timing instrumentation was added); all other figures are precisely measured.

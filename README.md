@@ -150,17 +150,21 @@ automatically as the pipeline runs) into `BENCHMARKS.md`.
 
 ## Known data issues
 
-- **12 of 52 municipality DEMs are effectively empty** (confirmed
-  2026-09-07): `Barendrecht`, `Dordrecht`, `Goeree-Overflakkee`, `Gorinchem`,
-  `Hardinxveld-Giessendam`, `Hellevoetsluis`, `Hendrik-Ido-Ambacht`,
-  `Hoeksche Waard`, `Nissewaard`, `Papendrecht`, `Sliedrecht`, `Zwijndrecht`
-  are 0-3.4% real elevation data, the rest exactly zero. A flat/zero DEM
-  means the viewshed algorithm treats it as unobstructed terrain — the
-  pipeline still runs without errors and produces plausible-looking output
-  (effectively "trees within 30m", not real terrain-based visibility), so
-  this failure mode is invisible from the output alone. Currently excluded
-  via `CORRUPTED_DEM_MUNICIPALITIES` in `config_local.py`; re-run those
-  once corrected source DEMs are available.
+- **[RESOLVED 2026-09-07]** 12 of 52 municipality DEMs (`Barendrecht`,
+  `Dordrecht`, `Goeree-Overflakkee`, `Gorinchem`, `Hardinxveld-Giessendam`,
+  `Hellevoetsluis`, `Hendrik-Ido-Ambacht`, `Hoeksche Waard`, `Nissewaard`,
+  `Papendrecht`, `Sliedrecht`, `Zwijndrecht`) were found to be 0-3.4% real
+  elevation data, the rest exactly zero with no NoData flag — invisible
+  from the output alone, since a flat/zero DEM just makes the viewshed
+  algorithm treat it as unobstructed terrain (plausible-looking output,
+  effectively "trees within 30m" rather than real terrain-based
+  visibility). Root cause: whatever process produced these `fme_input`
+  files exported void areas as literal `0.0`. Fixed by re-exporting the
+  affected extents from the authoritative source
+  (`Geo_raster.TOPOGRAFIE.AHN4_05M_RUW`, an SDE raster) — see
+  `sde_reexport/` and `ARCHITECTURE.md` §11 for the full process. Verified
+  on R:\ (real elevation data, correct NoData=-9999). No longer excluded in
+  `config_local.py`.
 - Output pixel value `0` means "no tree within 30 m," not "no data" — no
   NoData value is set, intentionally, so GIS tools render it correctly.
 - Large municipality DEMs observed to be strip-organized rather than
