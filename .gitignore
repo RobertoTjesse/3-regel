@@ -17,6 +17,11 @@ data/processed/*
 logs/*
 !logs/.gitkeep
 
+# One-off SDE re-export staging — large rasters, never committed. Keep the
+# script and extent metadata (tracked), not the multi-GB clipped outputs.
+sde_reexport/raw_clips/
+sde_reexport/finished/
+
 # Python
 __pycache__/
 *.pyc

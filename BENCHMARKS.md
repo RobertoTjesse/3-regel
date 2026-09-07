@@ -8,13 +8,12 @@ Do not edit by hand — regenerate instead.
 | Parameter | Value |
 |---|---|
 | Max viewshed distance | 30.0 m |
-| Observer height | 1.7 m |
+| Tree height | max DEM value within 1.5 m of the tree, used directly as observer height (clamped to 35.0 m; falls back to 1.7 m if out of bounds or implausible) |
 | Target height | 0.0 m |
 | Curvature coefficient | 0.0 (0 = flat-earth) |
-| Tree height field | None (None = every tree uses observer height) |
 | DEM CRS | RD New / EPSG:28992, 0.5 m resolution |
 | Tile size (inner) | 1000 px (500 m) |
-| Tile buffer | 70 px (35.0 m) |
+| Tile buffer | 70 px (35.0 m), extends across municipality boundaries |
 | Parallel workers | 4 |
 | Output raster dtype | UInt32 |
 
@@ -22,38 +21,36 @@ Do not edit by hand — regenerate instead.
 
 | Municipality | Tiles | Trees | Tile DEM (s) | Compute viewsheds (s) | Merge (s) | Total | Trees/sec |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| 's-Gravenhage | 891 | 392778 | 145.2 | 1017.0 | 69.0 | 20m31.2s | 386 |
-| Alblasserdam | 110 | 28458 | 10.8 | 13.8 | 6.8 | 31.4s | 2,062 |
-| Albrandswaard | 150 | 102009 | 16.1 | 45.2 | 11.9 | 1m13.2s | 2,257 |
-| Alphen aan den Rijn | 800 | 243996 | 121.7 | 117.3 | 64.1 | 5m03.1s | 2,080 |
-| Barendrecht | 130 | 84733 | 8.8 | 38.3 | 11.3 | 58.4s | 2,212 |
-| Bodegraven-Reeuwijk | 750 | 110475 | 82.6 | 55.1 | 48.7 | 3m06.4s | 2,005 |
-| Brielle | 285 | 60227 | 23.6 | 28.5 | 18.5 | 1m10.6s | 2,113 |
-| Capelle aan den IJssel | 168 | 71238 | 13.1 | 32.7 | 11.8 | 57.6s | 2,179 |
-| Delft | 180 | 113967 | 20.1 | 51.0 | 15.0 | 1m26.1s | 2,235 |
-| Dordrecht | 925 | 340092 | 103.9 | 173.1 | 60.1 | 5m37.1s | 1,965 |
-| Goeree-Overflakkee | 4410 | 477564 | 736.6 | 255.9 | 223.8 | 20m16.3s | 1,866 |
-| Gorinchem | 176 | 64074 | 15.9 | 32.5 | 11.7 | 1m00.1s | 1,972 |
-| Gouda | 140 | 71283 | 16.6 | 33.0 | 11.2 | 1m00.8s | 2,160 |
-| Hardinxveld-Giessendam | 180 | 40737 | 17.9 | 19.7 | 10.0 | 47.6s | 2,068 |
-| Hellevoetsluis | 546 | 93262 | 64.8 | 44.1 | 26.4 | 2m15.3s | 2,115 |
-| Hendrik-Ido-Ambacht | 110 | 46538 | 9.9 | 28.1 | 7.9 | 45.9s | 1,656 |
-| Hillegom | 110 | 31473 | 11.4 | 19.7 | 7.8 | 38.9s | 1,598 |
-| Hoeksche Waard | 1914 | 422218 | 404.6 | 210.7 | 149.4 | 12m44.7s | 2,004 |
-| Kaag en Braassem | 486 | 71691 | 57.4 | 35.8 | 32.3 | 2m05.5s | 2,003 |
-| Katwijk | 240 | 73494 | 27.2 | 33.9 | 15.5 | 1m16.6s | 2,168 |
-| Krimpen aan den IJssel | 91 | 42672 | 9.5 | 22.0 | 6.4 | 37.9s | 1,940 |
-| Krimpenerwaard | 1260 |  | 239.1 | 0.0 | 0.0 | 3m59.1s |  |
-| Lansingerland | 460 | 120481 | 60.6 | 56.9 | 32.6 | 2m30.1s | 2,117 |
-| Leiden | 180 | 100079 | 21.2 | 47.6 | 16.1 | 1m24.9s | 2,102 |
-| Leiderdorp | 96 | 29681 | 9.7 | 15.0 | 6.7 | 31.4s | 1,979 |
-| Leidschendam-Voorburg | 352 | 102917 | 45.9 | 50.9 | 24.8 | 2m01.6s | 2,022 |
-| Lisse | 135 | 53642 | 12.6 | 26.9 | 9.3 | 48.8s | 1,994 |
-| Maassluis | 110 | 30767 | 11.4 | 16.9 | 7.5 | 35.8s | 1,821 |
-| Midden-Delfland | 528 | 60818 | 72.4 | 32.5 | 32.4 | 2m17.3s | 1,871 |
-| Papendrecht | 77 | 43336 | 6.0 | 39.0 | 6.0 | 51.0s | 1,111 |
-| Zoetermeer | 280 | 141475 | 40.0 | 201.0 | 21.0 | 4m22.0s | 704 |
+| 's-Gravenhage | 891 | 809616 | 198.0 | 359.5 | 106.8 | 11m04.3s | 2,252 |
+| Alblasserdam | 110 | 74702 | 42.3 | 33.8 | 9.6 | 1m25.7s | 2,210 |
+| Albrandswaard | 150 | 139387 | 82.5 | 62.4 | 14.1 | 2m39.0s | 2,234 |
+| Alphen aan den Rijn | 800 | 338648 | 169.9 | 160.4 | 80.2 | 6m50.5s | 2,111 |
+| Bodegraven-Reeuwijk | 750 | 223479 | 137.7 | 109.1 | 61.9 | 5m08.7s | 2,048 |
+| Brielle | 285 | 106888 | 159.4 | 49.5 | 23.5 | 3m52.4s | 2,159 |
+| Capelle aan den IJssel | 168 | 176308 | 102.6 | 81.2 | 17.7 | 3m21.5s | 2,171 |
+| Delft | 180 | 171744 | 82.2 | 81.1 | 19.1 | 3m02.4s | 2,118 |
+| Gouda | 140 | 96311 | 40.1 | 44.4 | 13.4 | 1m37.9s | 2,169 |
+| Hillegom | 110 | 38402 | 18.4 | 18.8 | 8.3 | 45.5s | 2,043 |
+| Kaag en Braassem | 486 | 115118 | 97.1 | 56.7 | 39.1 | 3m12.9s | 2,030 |
+| Katwijk | 240 | 136249 | 48.0 | 64.4 | 22.2 | 2m14.6s | 2,116 |
+| Krimpen aan den IJssel | 91 | 86407 | 53.7 | 39.8 | 8.5 | 1m42.0s | 2,171 |
+| Krimpenerwaard | 1260 | 515985 | 366.4 | 267.7 | 138.8 | 12m52.9s | 1,927 |
+| Lansingerland | 460 | 306140 | 155.4 | 156.8 | 47.9 | 6m00.1s | 1,952 |
+| Leiden | 180 | 165083 | 44.9 | 90.5 | 19.9 | 2m35.3s | 1,824 |
+| Leiderdorp | 96 | 46915 | 30.5 | 26.5 | 8.2 | 1m05.2s | 1,770 |
+| Leidschendam-Voorburg | 352 | 305922 | 94.4 | 167.7 | 39.4 | 5m01.5s | 1,824 |
+| Lisse | 135 | 70297 | 36.4 | 38.7 | 11.0 | 1m26.1s | 1,816 |
+| Maassluis | 110 | 64313 | 67.4 | 35.1 | 10.2 | 1m52.7s | 1,832 |
+| Midden-Delfland | 528 | 348388 | 263.2 | 190.9 | 55.9 | 8m30.0s | 1,825 |
+| Molenlanden | 1539 | 535864 | 368.0 | 265.7 | 157.1 | 13m10.8s | 2,017 |
+| Nieuwkoop | 812 | 150665 | 134.2 | 79.6 | 62.8 | 4m36.6s | 1,893 |
+| Noordwijk | 672 | 293002 | 100.2 | 146.9 | 58.3 | 5m05.4s | 1,995 |
+| Oegstgeest | 90 | 78431 | 21.2 | 38.9 | 8.6 | 1m08.7s | 2,016 |
+| Papendrecht | 77 | 50523 | 21.7 | 24.1 | 6.3 | 52.1s | 2,096 |
+| Pijnacker-Nootdorp | 300 | 218868 | 117.0 | 105.7 | 29.2 | 4m11.9s | 2,071 |
+| Ridderkerk | 210 | 174717 | 103.6 | 83.8 | 21.0 | 3m28.4s | 2,085 |
+| Rijswijk | 110 | 110936 | 38.3 | 61.9 | 12.4 | 1m52.6s | 1,792 |
 
-**Total time across all listed municipalities: 103m26.7s.**
+**Total time across all listed municipalities: 120m47.7s.**
 
 Note: Papendrecht and 's-Gravenhage `tile_dem` timings are approximate (measured before per-stage timing instrumentation was added); all other figures are precisely measured.

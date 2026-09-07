@@ -1,0 +1,110 @@
+[
+  {
+    "name": "Barendrecht",
+    "xmin": 92397.0,
+    "ymin": 427040.0,
+    "xmax": 98890.0,
+    "ymax": 432152.5,
+    "width_m": 6493.0,
+    "height_m": 5112.5
+  },
+  {
+    "name": "Dordrecht",
+    "xmin": 101908.0,
+    "ymin": 414109.5,
+    "xmax": 120447.0,
+    "ymax": 426401.0,
+    "width_m": 18539.0,
+    "height_m": 12291.5
+  },
+  {
+    "name": "Goeree-Overflakkee",
+    "xmin": 43563.0,
+    "ymin": 406592.0,
+    "xmax": 88497.0,
+    "ymax": 430969.5,
+    "width_m": 44934.0,
+    "height_m": 24377.5
+  },
+  {
+    "name": "Gorinchem",
+    "xmin": 122819.0,
+    "ymin": 425544.5,
+    "xmax": 130580.5,
+    "ymax": 430758.5,
+    "width_m": 7761.5,
+    "height_m": 5214.0
+  },
+  {
+    "name": "Hardinxveld-Giessendam",
+    "xmin": 114671.0,
+    "ymin": 425337.0,
+    "xmax": 123375.0,
+    "ymax": 430484.0,
+    "width_m": 8704.0,
+    "height_m": 5147.0
+  },
+  {
+    "name": "Hellevoetsluis",
+    "xmin": 62052.0,
+    "ymin": 423072.5,
+    "xmax": 74794.0,
+    "ymax": 433381.5,
+    "width_m": 12742.0,
+    "height_m": 10309.0
+  },
+  {
+    "name": "Hendrik-Ido-Ambacht",
+    "xmin": 100658.5,
+    "ymin": 426252.5,
+    "xmax": 105857.5,
+    "ymax": 431622.5,
+    "width_m": 5199.0,
+    "height_m": 5370.0
+  },
+  {
+    "name": "Hoeksche Waard",
+    "xmin": 73899.0,
+    "ymin": 411783.0,
+    "xmax": 102920.0,
+    "ymax": 428137.5,
+    "width_m": 29021.0,
+    "height_m": 16354.5
+  },
+  {
+    "name": "Nissewaard",
+    "xmin": 72087.5,
+    "ymin": 422094.5,
+    "xmax": 89300.5,
+    "ymax": 432328.0,
+    "width_m": 17213.0,
+    "height_m": 10233.5
+  },
+  {
+    "name": "Papendrecht",
+    "xmin": 105403.5,
+    "ymin": 425892.5,
+    "xmax": 110741.5,
+    "ymax": 429282.0,
+    "width_m": 5338.0,
+    "height_m": 3389.5
+  },
+  {
+    "name": "Sliedrecht",
+    "xmin": 109565.5,
+    "ymin": 425241.5,
+    "xmax": 115400.0,
+    "ymax": 428948.0,
+    "width_m": 5834.5,
+    "height_m": 3706.5
+  },
+  {
+    "name": "Zwijndrecht",
+    "xmin": 97439.5,
+    "ymin": 423746.0,
+    "xmax": 105769.5,
+    "ymax": 429141.5,
+    "width_m": 8330.0,
+    "height_m": 5395.5
+  }
+]
