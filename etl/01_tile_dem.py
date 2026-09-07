@@ -1,9 +1,9 @@
 """
 01_tile_dem.py — Split each municipality's DEM into overlapping tiles.
 
-Source data is one DEM (.tif) + tree layer (.shp) pair per municipality in
-config.VIEWANALYSE_DIR. This script only touches the DEM half; the matching
-.shp is read directly by 02_compute_viewsheds.py.
+Source data is one DEM (.tif) + tree layer (.gpkg) pair per municipality in
+config.VIEWANALYSE_DIR. This script only touches the DEM half; trees are
+read directly by 02_compute_viewsheds.py.
 
 Usage:
     python etl/01_tile_dem.py
@@ -22,6 +22,14 @@ neighbouring tile within that radius are still visible to this tile's queries
 (02_compute_viewsheds.py queries trees using the buffered extent, then crops
 its output back down to the inner extent — this halo-then-crop approach is
 what keeps tile seams artefact-free in the final mosaic).
+
+Pixel data for every tile comes from config.PROVINCE_DEM_VRT (a VRT mosaic
+of every municipality's DEM), not the individual municipality .tif — so a
+tile whose buffer extends past this municipality's own raster edge still
+gets real elevation data from the neighbouring municipality, rather than
+stopping dead at a hard edge. The municipality's own .tif is only used to
+define the tiling grid (extent, pixel size), so each municipality still
+gets exactly the same tile coverage as before.
 """
 
 import sys
@@ -49,8 +57,12 @@ log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> int:
-    """Returns the total number of tiles written."""
+def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path, province_vrt) -> int:
+    """Returns the total number of tiles written.
+
+    province_vrt is an open GDAL dataset (config.PROVINCE_DEM_VRT) used as
+    the actual pixel source for every tile — see module docstring.
+    """
     tiles_dir.mkdir(parents=True, exist_ok=True)
 
     log.info(f"Opening DEM: {dem_path}")
@@ -64,6 +76,7 @@ def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> int:
     ysize  = ds.RasterYSize
     px     = abs(gt[1])   # pixel width in map units (metres for RD New)
     py     = abs(gt[5])   # pixel height
+    ds = None              # only needed the grid parameters above
 
     buf    = config.TILE_BUFFER_PX
     tpx    = config.TILE_PIXELS
@@ -90,17 +103,20 @@ def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> int:
     done = 0
     for row in range(n_rows):
         for col in range(n_cols):
-            # Inner (un-buffered) pixel window
+            # Inner (un-buffered) pixel window, in this municipality's own grid
             inner_x0 = col * tpx
             inner_y0 = row * tpx
             inner_x1 = min(xsize, inner_x0 + tpx)
             inner_y1 = min(ysize, inner_y0 + tpx)
 
-            # Buffered window (clamped to DEM bounds)
-            buf_x0 = max(0, inner_x0 - buf)
-            buf_y0 = max(0, inner_y0 - buf)
-            buf_x1 = min(xsize, inner_x1 + buf)
-            buf_y1 = min(ysize, inner_y1 + buf)
+            # Buffered window — deliberately NOT clamped to this
+            # municipality's own raster bounds. A negative offset or one
+            # past xsize/ysize just means "reach into whatever's there in
+            # the province VRT", which may be a neighbouring municipality.
+            buf_x0 = inner_x0 - buf
+            buf_y0 = inner_y0 - buf
+            buf_x1 = inner_x1 + buf
+            buf_y1 = inner_y1 + buf
 
             win_w = buf_x1 - buf_x0
             win_h = buf_y1 - buf_y0
@@ -108,22 +124,23 @@ def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> int:
             tile_id   = f"tile_{row:04d}_{col:04d}"
             tile_path = tiles_dir / f"{tile_id}.tif"
 
+            # Geo-coordinates of the buffered window (upper-left / lower-right)
+            tile_x0 = gt[0] + buf_x0 * gt[1]
+            tile_y0 = gt[3] + buf_y0 * gt[5]
+            buf_geo_x1 = gt[0] + buf_x1 * gt[1]
+            buf_geo_y1 = gt[3] + buf_y1 * gt[5]
+
             if tile_path.exists():
                 log.debug(f"  skip existing {tile_id}")
             else:
                 gdal.Translate(
                     str(tile_path),
-                    ds,
-                    srcWin=[buf_x0, buf_y0, win_w, win_h],
+                    province_vrt,
+                    projWin=[tile_x0, tile_y0, buf_geo_x1, buf_geo_y1],
+                    width=win_w,
+                    height=win_h,
                     creationOptions=config.TILE_CREATION_OPTIONS,
                 )
-
-            # Geo-coordinates of tile origin, buffered extent, and inner extent
-            tile_x0 = gt[0] + buf_x0 * gt[1]
-            tile_y0 = gt[3] + buf_y0 * gt[5]
-
-            buf_geo_x1 = gt[0] + buf_x1 * gt[1]
-            buf_geo_y1 = gt[3] + buf_y1 * gt[5]
 
             inner_geo_x0 = gt[0] + inner_x0 * gt[1]
             inner_geo_y0 = gt[3] + inner_y0 * gt[5]
@@ -164,8 +181,6 @@ def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> int:
             if done % 50 == 0 or done == total:
                 log.info(f"  {done}/{total} tiles written")
 
-    ds = None
-
     with open(tile_index_path, "w") as fh:
         json.dump(index, fh, indent=2)
 
@@ -183,10 +198,21 @@ if __name__ == "__main__":
             "Check config.VIEWANALYSE_DIR and config.MUNICIPALITIES."
         )
 
+    if not config.PROVINCE_DEM_VRT.exists():
+        sys.exit(
+            f"ERROR: {config.PROVINCE_DEM_VRT} not found.\n"
+            "Build it once with:\n"
+            f'  gdalbuildvrt "{config.PROVINCE_DEM_VRT}" "{config.VIEWANALYSE_DIR}"\\*.tif'
+        )
+
+    province_vrt = gdal.Open(str(config.PROVINCE_DEM_VRT))
+    if province_vrt is None:
+        sys.exit(f"ERROR: GDAL could not open {config.PROVINCE_DEM_VRT}")
+
     log.info(f"Municipalities to tile: {[name for name, _, _ in pairs]}")
 
     for name, dem_path, _trees_path in pairs:
         log.info(f"=== {name} ===")
         t0 = time.perf_counter()
-        n_tiles = tile_dem(dem_path, config.dem_tiles_dir(name), config.tile_index_path(name))
+        n_tiles = tile_dem(dem_path, config.dem_tiles_dir(name), config.tile_index_path(name), province_vrt)
         config.log_benchmark(name, "tile_dem", time.perf_counter() - t0, tiles=n_tiles)

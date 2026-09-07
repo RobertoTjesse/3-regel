@@ -42,24 +42,39 @@ VIEWANALYSE_DIR = Path(r"\\your-server\path\to\viewanalyse")
 # Empty list = process every tif/shp pair found in VIEWANALYSE_DIR.
 MUNICIPALITIES = ["Papendrecht"]
 
+# Municipalities to always skip regardless of MUNICIPALITIES above — e.g. a
+# source DEM confirmed corrupted/empty. Override in config_local.py.
+CORRUPTED_DEM_MUNICIPALITIES = []
+
 try:
     from config_local import *  # noqa: F401,F403 — machine-specific overrides
 except ImportError:
     pass
 
+# Scripted per-municipality runs (see etl/run_all_municipalities.sh) set
+# this to process exactly one municipality per invocation, overriding
+# whatever MUNICIPALITIES is set to above.
+_single = os.environ.get("MUNICIPALITY_OVERRIDE")
+if _single:
+    MUNICIPALITIES = [_single]
+
 
 def municipality_pairs():
     """Yield (name, dem_path, trees_path) for every tif+gpkg pair in VIEWANALYSE_DIR,
-    filtered by MUNICIPALITIES when that list is non-empty.
+    filtered by MUNICIPALITIES when that list is non-empty, and always
+    excluding CORRUPTED_DEM_MUNICIPALITIES.
 
     Trees are read from a GeoPackage (converted once from the original .shp —
     GeoPackage has a built-in R-tree spatial index, unlike a bare shapefile,
     which made per-tile bbox queries scan the whole file and dominated
     runtime on larger municipalities)."""
     wanted = set(MUNICIPALITIES) if MUNICIPALITIES else None
+    excluded = set(CORRUPTED_DEM_MUNICIPALITIES)
     for tif in sorted(VIEWANALYSE_DIR.glob("*.tif")):
         name = tif.stem
         if wanted is not None and name not in wanted:
+            continue
+        if name in excluded:
             continue
         gpkg = VIEWANALYSE_DIR / f"{name}.gpkg"
         if gpkg.exists():
@@ -80,6 +95,43 @@ def viewshed_tiles_dir(name: str) -> Path:
 
 def final_output_path(name: str) -> Path:
     return PROCESSED_DIR / f"{name}_viewshed.tif"
+
+
+# ---------------------------------------------------------------------------
+# Cross-municipality context
+# ---------------------------------------------------------------------------
+# A tree or terrain feature just across a municipality boundary can still be
+# within MAX_DISTANCE of a pixel on this side of it — the same seam problem
+# already solved between tiles within one municipality, now at province
+# scale. These combined sources let a tile near a municipality's edge pull
+# real DEM/tree context from the neighbour instead of hitting a hard edge.
+# Built once with:
+#   gdalbuildvrt data/interim/province_dem.vrt <VIEWANALYSE_DIR>/*.tif
+#   ogrmerge.py -o data/interim/province_trees.gpkg -single -nln province_trees \
+#       -field_strategy Union -src_layer_field_name source_municipality \
+#       -f GPKG -overwrite_ds <VIEWANALYSE_DIR>/*.gpkg
+# TILE_BUFFER_PX (35m, below) already exceeds the required 30m, so the same
+# buffer constant covers both the intra-municipality and cross-municipality
+# halo — no separate constant needed.
+PROVINCE_DEM_VRT    = INTERIM_DIR / "province_dem.vrt"
+PROVINCE_TREES_GPKG = INTERIM_DIR / "province_trees.gpkg"
+
+# ---------------------------------------------------------------------------
+# Per-tree height
+# ---------------------------------------------------------------------------
+# Each tree's height is sampled from the DEM surface rather than a fixed
+# constant: take the max DEM value within this radius around the tree point
+# (approximates canopy top on a surface model) and use it directly as the
+# ViewshedGenerate observer height.
+TREE_HEIGHT_BUFFER_RADIUS = 1.5   # metres
+
+# Sanity clamp. AHN's surface raster carries no point classification (see
+# README) — there is no way to tell a power line, pylon, or building corner
+# apart from a tree canopy in the raw elevation values. Dutch trees
+# essentially never exceed this height; a sampled value above it almost
+# certainly means the buffer caught something else, so fall back to
+# OBSERVER_HEIGHT instead of trusting it.
+TREE_HEIGHT_MAX_PLAUSIBLE = 35.0  # metres
 
 
 # ---------------------------------------------------------------------------
@@ -139,12 +191,8 @@ CURVATURE_COEFF   = 0.0    # 0 = flat-earth; 0.85 = standard atmospheric refract
 # ---------------------------------------------------------------------------
 # Tree layer settings
 # ---------------------------------------------------------------------------
-# Layer name inside the shapefile / database.  None = first layer auto-detected.
+# Layer name inside the GeoPackage.  None = first layer auto-detected.
 TREES_LAYER        = None
-
-# Column that holds tree height (metres above ground).
-# The source shapefiles have no such field, so every tree uses OBSERVER_HEIGHT.
-TREES_HEIGHT_FIELD = None
 
 # ---------------------------------------------------------------------------
 # DEM tiling  (01_tile_dem.py)

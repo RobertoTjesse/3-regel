@@ -5,14 +5,17 @@ Algorithm
 ---------
 For each municipality (config.municipality_pairs()):
   For every DEM tile (from that municipality's tile_index.json):
-    1. Query the municipality's tree shapefile for all trees within the
-       tile's *buffered* extent — not just the inner extent — since a tree
-       just across a tile boundary can still be within MAX_DISTANCE of an
-       inner pixel on this side. (The same tree gets queried again by the
-       neighbouring tile too; that's fine, see step 4.)
-    2. For each tree call gdal.ViewshedGenerate() against the buffered tile
-       DEM with MAX_DISTANCE = 30 m, and paste the (small, observer-centred)
-       result into a tile-sized accumulator at the right pixel offset.
+    1. Query config.PROVINCE_TREES_GPKG (all municipalities combined) for
+       every tree within the tile's *buffered* extent — not just the inner
+       extent, and not restricted to this municipality's own trees — since a
+       tree just across a tile OR municipality boundary can still be within
+       MAX_DISTANCE of an inner pixel on this side. (The same tree gets
+       queried again by the neighbouring tile too; that's fine, see step 4.)
+    2. For each tree, sample its height from the DEM (see
+       _sample_tree_height()) and call gdal.ViewshedGenerate() against the
+       buffered tile DEM with MAX_DISTANCE = 30 m, pasting the (small,
+       observer-centred) result into a tile-sized accumulator at the right
+       pixel offset.
     3. Accumulate visible-pixel counts in a uint32 numpy array.
     4. Crop the accumulator down to the tile's *inner* window and write only
        that to data/interim/viewshed_tiles/<name>/<tile_id>.tif. Cropping to
@@ -75,17 +78,16 @@ def _open_tree_layer(db_path: Path, layer_name=None):
     return ds, layer
 
 
-def iter_trees_in_bbox(db_path: Path, xmin: float, ymin: float,
-                       xmax: float, ymax: float,
-                       layer_name=None,
-                       height_field=None,
-                       default_height=config.OBSERVER_HEIGHT):
+def iter_tree_points_in_bbox(db_path: Path, xmin: float, ymin: float,
+                              xmax: float, ymax: float, layer_name=None):
     """
-    Generator that yields (x, y, observer_height) for every tree whose
-    geometry falls within [xmin,xmax] x [ymin,ymax].
+    Generator that yields (x, y) for every tree whose geometry falls within
+    [xmin,xmax] x [ymin,ymax].
 
     Uses OGR SetSpatialFilter for server-side (or index-assisted) filtering,
-    so it is safe even for multi-million-row databases.
+    so it is safe even for multi-million-row databases. Height is not
+    determined here — see _sample_tree_height(), which reads it from the DEM
+    once the tile raster is available.
     """
     ds, layer = _open_tree_layer(db_path, layer_name)
 
@@ -109,21 +111,53 @@ def iter_trees_in_bbox(db_path: Path, xmin: float, ymin: float,
         geom_type = geom.GetGeometryType()
         if geom_type not in (ogr.wkbPoint, ogr.wkbPoint25D):
             geom = geom.Centroid()
-        x, y = geom.GetX(), geom.GetY()
-
-        h = default_height
-        if height_field:
-            val = feat.GetField(height_field)
-            try:
-                if val is not None and float(val) > 0:
-                    h = float(val)
-            except (TypeError, ValueError):
-                pass  # non-numeric height value — fall back to default_height
-
-        yield x, y, h
+        yield geom.GetX(), geom.GetY()
 
     layer.SetSpatialFilter(None)
     ds = None  # closes file
+
+
+def _sample_tree_height(dem_band, gt, nx, ny, x, y):
+    """
+    Sample the DEM surface within TREE_HEIGHT_BUFFER_RADIUS of (x, y) and
+    return the max value found (used directly as observer height, not
+    adjusted for ground elevation — see README for why).
+
+    Falls back to OBSERVER_HEIGHT if the point is out of bounds, the sample
+    is non-finite/non-positive, or exceeds TREE_HEIGHT_MAX_PLAUSIBLE — the
+    source raster carries no point classification, so a power line, pylon,
+    or building near a tree could otherwise be sampled as "tree height".
+    """
+    px = abs(gt[1])
+    py = abs(gt[5])
+    col = (x - gt[0]) / gt[1]
+    row = (y - gt[3]) / gt[5]
+
+    rad_px_x = max(1, int(round(config.TREE_HEIGHT_BUFFER_RADIUS / px)))
+    rad_px_y = max(1, int(round(config.TREE_HEIGHT_BUFFER_RADIUS / py)))
+
+    c0 = max(0, int(round(col)) - rad_px_x)
+    r0 = max(0, int(round(row)) - rad_px_y)
+    c1 = min(nx, int(round(col)) + rad_px_x + 1)
+    r1 = min(ny, int(round(row)) + rad_px_y + 1)
+    if c1 <= c0 or r1 <= r0:
+        return config.OBSERVER_HEIGHT
+
+    window = dem_band.ReadAsArray(c0, r0, c1 - c0, r1 - r0)
+    if window is None or window.size == 0:
+        return config.OBSERVER_HEIGHT
+
+    # Circular mask so this approximates a radius, not a square window
+    rows_idx, cols_idx = np.indices(window.shape)
+    dist = np.sqrt(((rows_idx + r0 - row) * py) ** 2 + ((cols_idx + c0 - col) * px) ** 2)
+    mask = dist <= config.TREE_HEIGHT_BUFFER_RADIUS
+    if not np.any(mask):
+        return config.OBSERVER_HEIGHT
+
+    max_val = float(np.max(window[mask]))
+    if not np.isfinite(max_val) or max_val <= 0 or max_val > config.TREE_HEIGHT_MAX_PLAUSIBLE:
+        return config.OBSERVER_HEIGHT
+    return max_val
 
 
 # ---------------------------------------------------------------------------
@@ -293,12 +327,11 @@ def process_tile(args):
 
     db_path = Path(trees_db_path)
     try:
-        for x, y, h in iter_trees_in_bbox(
+        for x, y in iter_tree_points_in_bbox(
             db_path, xmin, ymin, xmax, ymax,
             layer_name=config.TREES_LAYER,
-            height_field=config.TREES_HEIGHT_FIELD,
-            default_height=config.OBSERVER_HEIGHT,
         ):
+            h = _sample_tree_height(dem_band, gt, nx, ny, x, y)
             if _use_python_api:
                 arr, arr_gt = _viewshed_python_api(dem_band, x, y, h)
             else:
@@ -386,7 +419,7 @@ def _check_crs_match(name: str, dem_path: Path, trees_path: Path) -> bool:
 # Per-municipality driver
 # ---------------------------------------------------------------------------
 
-def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: int, resume: bool):
+def process_municipality(name: str, dem_path: Path, workers: int, resume: bool):
     """Returns (completed, errors, total_trees), or None if skipped before processing."""
     tile_index_path = config.tile_index_path(name)
     viewshed_dir     = config.viewshed_tiles_dir(name)
@@ -398,7 +431,14 @@ def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: i
         )
         return None
 
-    if not _check_crs_match(name, dem_path, trees_path):
+    if not config.PROVINCE_TREES_GPKG.exists():
+        log.error(
+            f"[{name}] {config.PROVINCE_TREES_GPKG} not found — build it once "
+            "(see config.py) before running this script. Skipping."
+        )
+        return None
+
+    if not _check_crs_match(name, dem_path, config.PROVINCE_TREES_GPKG):
         return None
 
     with open(tile_index_path) as fh:
@@ -408,12 +448,12 @@ def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: i
 
     total_tiles = len(tile_index)
     log.info(f"[{name}] Tile index: {total_tiles} tiles")
-    log.info(f"[{name}] Tree layer: {trees_path}")
+    log.info(f"[{name}] Tree layer: {config.PROVINCE_TREES_GPKG} (province-wide, for cross-boundary context)")
     log.info(f"[{name}] Workers: {workers}  |  Resume: {resume}")
     log.info(f"[{name}] Output: {viewshed_dir}")
 
     work_items = [
-        (tile_id, tile_info, str(trees_path), str(viewshed_dir), resume)
+        (tile_id, tile_info, str(config.PROVINCE_TREES_GPKG), str(viewshed_dir), resume)
         for tile_id, tile_info in tile_index.items()
     ]
 
@@ -488,10 +528,10 @@ def main():
 
     log.info(f"Municipalities to process: {[name for name, _, _ in pairs]}")
 
-    for name, dem_path, trees_path in pairs:
+    for name, dem_path, _trees_path in pairs:
         log.info(f"=== {name} ===")
         t0 = time.perf_counter()
-        result = process_municipality(name, dem_path, trees_path, args.workers, args.resume)
+        result = process_municipality(name, dem_path, args.workers, args.resume)
         elapsed = time.perf_counter() - t0
         if result is not None:
             completed, errors, total_trees = result
