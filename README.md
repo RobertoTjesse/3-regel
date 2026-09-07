@@ -26,10 +26,17 @@ Run scripts with the same Python that has access to that OSGeo4W
 ## Source data
 
 One DEM (`.tif`, 0.5 m RD New / EPSG:28992) + one tree-position layer
-(`.shp`, no height field — every tree uses `OBSERVER_HEIGHT`) per
+(`.gpkg`, no height field — every tree uses `OBSERVER_HEIGHT`) per
 municipality, sharing a basename (e.g. `Papendrecht.tif` /
-`Papendrecht.shp`), pointed at by `VIEWANALYSE_DIR` in your
+`Papendrecht.gpkg`), pointed at by `VIEWANALYSE_DIR` in your
 `config_local.py`.
+
+The tree layers originally shipped as `.shp` with no spatial index, which
+made every tile's bounding-box query scan the *entire* file — cost that
+scales with tile-count × total-features, and got dramatically worse on
+bigger municipalities (measured ~280x slower per query on an unindexed
+file vs. one converted to GeoPackage, which has a built-in R-tree index).
+They were converted once with `ogr2ogr -f GPKG <name>.gpkg <name>.shp`.
 
 Some municipality DEMs are tens of gigabytes, so the pipeline reads
 directly from wherever `VIEWANALYSE_DIR` points — nothing is copied locally

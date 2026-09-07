@@ -34,6 +34,7 @@ import sys
 import json
 import logging
 import argparse
+import time
 import os
 import subprocess
 import tempfile
@@ -385,7 +386,8 @@ def _check_crs_match(name: str, dem_path: Path, trees_path: Path) -> bool:
 # Per-municipality driver
 # ---------------------------------------------------------------------------
 
-def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: int, resume: bool) -> None:
+def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: int, resume: bool):
+    """Returns (completed, errors, total_trees), or None if skipped before processing."""
     tile_index_path = config.tile_index_path(name)
     viewshed_dir     = config.viewshed_tiles_dir(name)
 
@@ -394,10 +396,10 @@ def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: i
             f"[{name}] tile index not found at {tile_index_path} — "
             "run 01_tile_dem.py first. Skipping."
         )
-        return
+        return None
 
     if not _check_crs_match(name, dem_path, trees_path):
-        return
+        return None
 
     with open(tile_index_path) as fh:
         tile_index = json.load(fh)
@@ -455,6 +457,8 @@ def process_municipality(name: str, dem_path: Path, trees_path: Path, workers: i
             "Check the tree shapefile."
         )
 
+    return completed, errors, total_trees
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -486,7 +490,13 @@ def main():
 
     for name, dem_path, trees_path in pairs:
         log.info(f"=== {name} ===")
-        process_municipality(name, dem_path, trees_path, args.workers, args.resume)
+        t0 = time.perf_counter()
+        result = process_municipality(name, dem_path, trees_path, args.workers, args.resume)
+        elapsed = time.perf_counter() - t0
+        if result is not None:
+            completed, errors, total_trees = result
+            config.log_benchmark(name, "compute_viewsheds", elapsed,
+                                  tiles=completed, trees=total_trees, errors=errors)
 
     log.info("Next step: run 03_merge_tiles.py")
 

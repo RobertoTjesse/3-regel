@@ -27,6 +27,7 @@ what keeps tile seams artefact-free in the final mosaic).
 import sys
 import json
 import logging
+import time
 from pathlib import Path
 
 import config  # sets env vars, adds OSGeo4W to PATH
@@ -48,7 +49,8 @@ log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> None:
+def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> int:
+    """Returns the total number of tiles written."""
     tiles_dir.mkdir(parents=True, exist_ok=True)
 
     log.info(f"Opening DEM: {dem_path}")
@@ -169,6 +171,7 @@ def tile_dem(dem_path: Path, tiles_dir: Path, tile_index_path: Path) -> None:
 
     log.info(f"Tile index saved: {tile_index_path}")
     log.info(f"Done. {total} tiles in {tiles_dir}")
+    return total
 
 
 # ---------------------------------------------------------------------------
@@ -184,4 +187,6 @@ if __name__ == "__main__":
 
     for name, dem_path, _trees_path in pairs:
         log.info(f"=== {name} ===")
-        tile_dem(dem_path, config.dem_tiles_dir(name), config.tile_index_path(name))
+        t0 = time.perf_counter()
+        n_tiles = tile_dem(dem_path, config.dem_tiles_dir(name), config.tile_index_path(name))
+        config.log_benchmark(name, "tile_dem", time.perf_counter() - t0, tiles=n_tiles)

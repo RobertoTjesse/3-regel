@@ -7,6 +7,8 @@ machine-specific settings just below, which you override in a local
 config_local.example.py for a template.
 """
 
+import csv
+import datetime
 import os
 import sys
 from pathlib import Path
@@ -47,16 +49,21 @@ except ImportError:
 
 
 def municipality_pairs():
-    """Yield (name, dem_path, trees_path) for every tif+shp pair in VIEWANALYSE_DIR,
-    filtered by MUNICIPALITIES when that list is non-empty."""
+    """Yield (name, dem_path, trees_path) for every tif+gpkg pair in VIEWANALYSE_DIR,
+    filtered by MUNICIPALITIES when that list is non-empty.
+
+    Trees are read from a GeoPackage (converted once from the original .shp —
+    GeoPackage has a built-in R-tree spatial index, unlike a bare shapefile,
+    which made per-tile bbox queries scan the whole file and dominated
+    runtime on larger municipalities)."""
     wanted = set(MUNICIPALITIES) if MUNICIPALITIES else None
     for tif in sorted(VIEWANALYSE_DIR.glob("*.tif")):
         name = tif.stem
         if wanted is not None and name not in wanted:
             continue
-        shp = VIEWANALYSE_DIR / f"{name}.shp"
-        if shp.exists():
-            yield name, tif, shp
+        gpkg = VIEWANALYSE_DIR / f"{name}.gpkg"
+        if gpkg.exists():
+            yield name, tif, gpkg
 
 
 def dem_tiles_dir(name: str) -> Path:
@@ -73,6 +80,34 @@ def viewshed_tiles_dir(name: str) -> Path:
 
 def final_output_path(name: str) -> Path:
     return PROCESSED_DIR / f"{name}_viewshed.tif"
+
+
+# ---------------------------------------------------------------------------
+# Benchmark logging — one row per (municipality, stage) run, appended as it
+# happens so partial data survives if a long multi-municipality run is
+# interrupted. See scripts/generate_benchmark_report.py for turning this
+# into BENCHMARKS.md.
+# ---------------------------------------------------------------------------
+BENCHMARK_LOG = BASE_DIR / "logs" / "benchmark.csv"
+_BENCHMARK_FIELDS = ["timestamp", "municipality", "stage", "seconds", "tiles", "trees", "errors"]
+
+
+def log_benchmark(municipality: str, stage: str, seconds: float, **extra) -> None:
+    BENCHMARK_LOG.parent.mkdir(parents=True, exist_ok=True)
+    is_new = not BENCHMARK_LOG.exists()
+    with open(BENCHMARK_LOG, "a", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=_BENCHMARK_FIELDS)
+        if is_new:
+            writer.writeheader()
+        writer.writerow({
+            "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
+            "municipality": municipality,
+            "stage": stage,
+            "seconds": f"{seconds:.1f}",
+            "tiles": extra.get("tiles", ""),
+            "trees": extra.get("trees", ""),
+            "errors": extra.get("errors", ""),
+        })
 
 
 # ---------------------------------------------------------------------------

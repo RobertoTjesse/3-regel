@@ -20,6 +20,7 @@ VIEWANALYSE_DIR if that list is empty), writing data/processed/<name>_viewshed.t
 import sys
 import logging
 import argparse
+import time
 from pathlib import Path
 
 import config
@@ -92,7 +93,8 @@ def translate_to_cog(vrt_path: str, out_path: str, build_ovr: bool) -> None:
     log.info("Translation complete.")
 
 
-def merge_municipality(name: str, build_ovr: bool) -> None:
+def merge_municipality(name: str, build_ovr: bool) -> bool:
+    """Returns True if the municipality was actually merged, False if skipped."""
     viewshed_dir = config.viewshed_tiles_dir(name)
     tile_files = sorted(viewshed_dir.glob("tile_*.tif"))
     if not tile_files:
@@ -100,7 +102,7 @@ def merge_municipality(name: str, build_ovr: bool) -> None:
             f"[{name}] no tile_*.tif files found in {viewshed_dir} — "
             "run 02_compute_viewsheds.py first. Skipping."
         )
-        return
+        return False
 
     log.info(f"[{name}] Found {len(tile_files)} output tiles in {viewshed_dir}")
 
@@ -123,6 +125,7 @@ def merge_municipality(name: str, build_ovr: bool) -> None:
         ds = None
 
     log.info(f"[{name}] Final output: {out_path}")
+    return True
 
 
 def main():
@@ -144,7 +147,10 @@ def main():
 
     for name, _dem_path, _trees_path in pairs:
         log.info(f"=== {name} ===")
-        merge_municipality(name, build_ovr=not args.no_overviews)
+        t0 = time.perf_counter()
+        merged = merge_municipality(name, build_ovr=not args.no_overviews)
+        if merged:
+            config.log_benchmark(name, "merge_tiles", time.perf_counter() - t0)
 
 
 if __name__ == "__main__":
