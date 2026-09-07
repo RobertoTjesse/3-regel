@@ -98,7 +98,13 @@ def main():
         )
 
     lines.append("")
-    lines.append(f"**Total time across all listed municipalities: {fmt_seconds(total_all)}.**")
+    total_trees = sum(m.get("trees", 0) for m in meta.values())
+    total_tiles = sum(m.get("tiles", 0) for m in meta.values())
+    lines.append(
+        f"**{len(agg)} municipalities, {total_tiles:,} tiles, "
+        f"{total_trees:,} tree viewsheds computed, "
+        f"{fmt_seconds(total_all)} total processing time.**"
+    )
     lines.append("")
     lines.append(
         "Note: Papendrecht and 's-Gravenhage `tile_dem` timings are approximate "
@@ -106,6 +112,17 @@ def main():
         "figures are precisely measured."
     )
     lines.append("")
+
+    province_path = config.BASE_DIR / "data" / "processed" / "ZuidHolland_viewshed.tif"
+    if province_path.exists():
+        lines.append("## Final output")
+        lines.append("")
+        lines.append(
+            f"All {len(agg)} municipality outputs merged into one province-wide COG: "
+            f"`{province_path.relative_to(config.BASE_DIR)}` "
+            f"({province_path.stat().st_size / 1e9:.2f} GB)."
+        )
+        lines.append("")
 
     out_path = config.BASE_DIR / "BENCHMARKS.md"
     out_path.write_text("\n".join(lines), encoding="utf-8")
