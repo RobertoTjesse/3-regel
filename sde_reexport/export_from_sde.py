@@ -1,6 +1,9 @@
 """
-export_from_sde.py — Batch-clip the 12 corrupted-municipality extents out of
-the SDE raster, to replace the empty files on the network share.
+export_from_sde.py — Batch-clip municipality extents out of the SDE raster,
+to replace files on the network share (originally built for the 12
+corrupted-DEM municipalities; reused for any later re-export batch — see
+sde_reexport/municipality_extents.csv for whichever set is currently
+staged).
 
 Run inside ArcGIS Pro's Python window, or as a standalone script using Pro's
 own Python interpreter (the one with arcpy).

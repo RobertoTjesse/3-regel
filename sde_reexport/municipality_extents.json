@@ -1,110 +1,308 @@
 [
   {
-    "name": "Barendrecht",
-    "xmin": 92397.0,
-    "ymin": 427040.0,
-    "xmax": 98890.0,
-    "ymax": 432152.5,
-    "width_m": 6493.0,
-    "height_m": 5112.5
+    "name": "Alblasserdam",
+    "xmin": 102515.5,
+    "ymin": 427926.5,
+    "xmax": 107798.5,
+    "ymax": 432892.0,
+    "width_m": 5283.0,
+    "height_m": 4965.5
   },
   {
-    "name": "Dordrecht",
-    "xmin": 101908.0,
-    "ymin": 414109.5,
-    "xmax": 120447.0,
-    "ymax": 426401.0,
-    "width_m": 18539.0,
-    "height_m": 12291.5
+    "name": "Albrandswaard",
+    "xmin": 85729.0,
+    "ymin": 427313.0,
+    "xmax": 93424.0,
+    "ymax": 432184.0,
+    "width_m": 7695.0,
+    "height_m": 4871.0
   },
   {
-    "name": "Goeree-Overflakkee",
-    "xmin": 43563.0,
-    "ymin": 406592.0,
-    "xmax": 88497.0,
-    "ymax": 430969.5,
-    "width_m": 44934.0,
-    "height_m": 24377.5
+    "name": "Alphen aan den Rijn",
+    "xmin": 96147.5,
+    "ymin": 452446.5,
+    "xmax": 112160.0,
+    "ymax": 464706.5,
+    "width_m": 16012.5,
+    "height_m": 12260.0
   },
   {
-    "name": "Gorinchem",
-    "xmin": 122819.0,
-    "ymin": 425544.5,
-    "xmax": 130580.5,
-    "ymax": 430758.5,
-    "width_m": 7761.5,
-    "height_m": 5214.0
+    "name": "Bodegraven-Reeuwijk",
+    "xmin": 105031.5,
+    "ymin": 447291.0,
+    "xmax": 119856.5,
+    "ymax": 459608.0,
+    "width_m": 14825.0,
+    "height_m": 12317.0
   },
   {
-    "name": "Hardinxveld-Giessendam",
-    "xmin": 114671.0,
-    "ymin": 425337.0,
-    "xmax": 123375.0,
-    "ymax": 430484.0,
-    "width_m": 8704.0,
-    "height_m": 5147.0
+    "name": "Brielle",
+    "xmin": 68754.5,
+    "ymin": 429599.5,
+    "xmax": 76056.0,
+    "ymax": 438934.5,
+    "width_m": 7301.5,
+    "height_m": 9335.0
   },
   {
-    "name": "Hellevoetsluis",
-    "xmin": 62052.0,
-    "ymin": 423072.5,
-    "xmax": 74794.0,
-    "ymax": 433381.5,
-    "width_m": 12742.0,
-    "height_m": 10309.0
+    "name": "Capelle aan den IJssel",
+    "xmin": 96415.5,
+    "ymin": 435538.5,
+    "xmax": 102302.0,
+    "ymax": 442302.5,
+    "width_m": 5886.5,
+    "height_m": 6764.0
   },
   {
-    "name": "Hendrik-Ido-Ambacht",
-    "xmin": 100658.5,
-    "ymin": 426252.5,
-    "xmax": 105857.5,
-    "ymax": 431622.5,
-    "width_m": 5199.0,
-    "height_m": 5370.0
+    "name": "Gouda",
+    "xmin": 104931.0,
+    "ymin": 445450.0,
+    "xmax": 111847.5,
+    "ymax": 450518.0,
+    "width_m": 6916.5,
+    "height_m": 5068.0
   },
   {
-    "name": "Hoeksche Waard",
-    "xmin": 73899.0,
-    "ymin": 411783.0,
-    "xmax": 102920.0,
-    "ymax": 428137.5,
-    "width_m": 29021.0,
-    "height_m": 16354.5
+    "name": "Hillegom",
+    "xmin": 97251.0,
+    "ymin": 476126.5,
+    "xmax": 102217.5,
+    "ymax": 481564.0,
+    "width_m": 4966.5,
+    "height_m": 5437.5
   },
   {
-    "name": "Nissewaard",
-    "xmin": 72087.5,
-    "ymin": 422094.5,
-    "xmax": 89300.5,
-    "ymax": 432328.0,
-    "width_m": 17213.0,
-    "height_m": 10233.5
+    "name": "Kaag en Braassem",
+    "xmin": 96829.0,
+    "ymin": 462887.5,
+    "xmax": 110160.0,
+    "ymax": 472072.5,
+    "width_m": 13331.0,
+    "height_m": 9185.0
   },
   {
-    "name": "Papendrecht",
-    "xmin": 105403.5,
-    "ymin": 425892.5,
-    "xmax": 110741.5,
-    "ymax": 429282.0,
-    "width_m": 5338.0,
-    "height_m": 3389.5
+    "name": "Katwijk",
+    "xmin": 84665.0,
+    "ymin": 463376.5,
+    "xmax": 92176.5,
+    "ymax": 471363.5,
+    "width_m": 7511.5,
+    "height_m": 7987.0
   },
   {
-    "name": "Sliedrecht",
-    "xmin": 109565.5,
-    "ymin": 425241.5,
-    "xmax": 115400.0,
-    "ymax": 428948.0,
-    "width_m": 5834.5,
-    "height_m": 3706.5
+    "name": "Krimpen aan den IJssel",
+    "xmin": 97234.5,
+    "ymin": 435075.0,
+    "xmax": 103896.0,
+    "ymax": 438444.5,
+    "width_m": 6661.5,
+    "height_m": 3369.5
   },
   {
-    "name": "Zwijndrecht",
-    "xmin": 97439.5,
-    "ymin": 423746.0,
-    "xmax": 105769.5,
-    "ymax": 429141.5,
-    "width_m": 8330.0,
-    "height_m": 5395.5
+    "name": "Krimpenerwaard",
+    "xmin": 99096.5,
+    "ymin": 433583.5,
+    "xmax": 120069.5,
+    "ymax": 448477.0,
+    "width_m": 20973.0,
+    "height_m": 14893.5
+  },
+  {
+    "name": "Lansingerland",
+    "xmin": 88741.0,
+    "ymin": 441574.5,
+    "xmax": 98726.0,
+    "ymax": 453029.5,
+    "width_m": 9985.0,
+    "height_m": 11455.0
+  },
+  {
+    "name": "Leiden",
+    "xmin": 90000.0,
+    "ymin": 459264.5,
+    "xmax": 96020.5,
+    "ymax": 466745.0,
+    "width_m": 6020.5,
+    "height_m": 7480.5
+  },
+  {
+    "name": "Leiderdorp",
+    "xmin": 95199.5,
+    "ymin": 460634.0,
+    "xmax": 99274.5,
+    "ymax": 466453.5,
+    "width_m": 4075.0,
+    "height_m": 5819.5
+  },
+  {
+    "name": "Leidschendam-Voorburg",
+    "xmin": 82780.5,
+    "ymin": 452395.5,
+    "xmax": 93815.5,
+    "ymax": 460585.0,
+    "width_m": 11035.0,
+    "height_m": 8189.5
+  },
+  {
+    "name": "Lisse",
+    "xmin": 95245.5,
+    "ymin": 470685.5,
+    "xmax": 99509.0,
+    "ymax": 478063.0,
+    "width_m": 4263.5,
+    "height_m": 7377.5
+  },
+  {
+    "name": "Maassluis",
+    "xmin": 74129.0,
+    "ymin": 435697.0,
+    "xmax": 79802.0,
+    "ymax": 440684.5,
+    "width_m": 5673.0,
+    "height_m": 4987.5
+  },
+  {
+    "name": "Molenlanden",
+    "xmin": 102033.0,
+    "ymin": 427072.0,
+    "xmax": 130322.0,
+    "ymax": 440476.5,
+    "width_m": 28289.0,
+    "height_m": 13404.5
+  },
+  {
+    "name": "Nieuwkoop",
+    "xmin": 106600.0,
+    "ymin": 457681.5,
+    "xmax": 121234.5,
+    "ymax": 471460.5,
+    "width_m": 14634.5,
+    "height_m": 13779.0
+  },
+  {
+    "name": "Noordwijk",
+    "xmin": 86833.0,
+    "ymin": 469128.5,
+    "xmax": 98940.0,
+    "ymax": 483220.0,
+    "width_m": 12107.0,
+    "height_m": 14091.5
+  },
+  {
+    "name": "Oegstgeest",
+    "xmin": 89772.0,
+    "ymin": 464081.0,
+    "xmax": 94259.5,
+    "ymax": 469010.5,
+    "width_m": 4487.5,
+    "height_m": 4929.5
+  },
+  {
+    "name": "Ridderkerk",
+    "xmin": 97196.0,
+    "ymin": 427987.0,
+    "xmax": 104130.0,
+    "ymax": 435358.0,
+    "width_m": 6934.0,
+    "height_m": 7371.0
+  },
+  {
+    "name": "Schiedam",
+    "xmin": 83644.5,
+    "ymin": 434610.0,
+    "xmax": 88433.0,
+    "ymax": 442244.5,
+    "width_m": 4788.5,
+    "height_m": 7634.5
+  },
+  {
+    "name": "Teylingen",
+    "xmin": 91225.5,
+    "ymin": 465972.0,
+    "xmax": 98669.5,
+    "ymax": 474573.5,
+    "width_m": 7444.0,
+    "height_m": 8601.5
+  },
+  {
+    "name": "Vlaardingen",
+    "xmin": 77852.5,
+    "ymin": 434378.0,
+    "xmax": 85134.0,
+    "ymax": 440948.5,
+    "width_m": 7281.5,
+    "height_m": 6570.5
+  },
+  {
+    "name": "Voorschoten",
+    "xmin": 87357.0,
+    "ymin": 457359.5,
+    "xmax": 92255.0,
+    "ymax": 462914.5,
+    "width_m": 4898.0,
+    "height_m": 5555.0
+  },
+  {
+    "name": "Waddinxveen",
+    "xmin": 100273.0,
+    "ymin": 447201.5,
+    "xmax": 108365.0,
+    "ymax": 454695.0,
+    "width_m": 8092.0,
+    "height_m": 7493.5
+  },
+  {
+    "name": "Wassenaar",
+    "xmin": 79786.5,
+    "ymin": 456666.0,
+    "xmax": 90536.5,
+    "ymax": 467770.0,
+    "width_m": 10750.0,
+    "height_m": 11104.0
+  },
+  {
+    "name": "Westland",
+    "xmin": 67215.0,
+    "ymin": 439759.0,
+    "xmax": 81141.5,
+    "ymax": 453355.0,
+    "width_m": 13926.5,
+    "height_m": 13596.0
+  },
+  {
+    "name": "Westvoorne",
+    "xmin": 56280.5,
+    "ymin": 428930.0,
+    "xmax": 70633.0,
+    "ymax": 439505.0,
+    "width_m": 14352.5,
+    "height_m": 10575.0
+  },
+  {
+    "name": "Zoetermeer",
+    "xmin": 88239.5,
+    "ymin": 449507.5,
+    "xmax": 98213.5,
+    "ymax": 456582.5,
+    "width_m": 9974.0,
+    "height_m": 7075.0
+  },
+  {
+    "name": "Zoeterwoude",
+    "xmin": 92137.0,
+    "ymin": 454940.0,
+    "xmax": 97836.0,
+    "ymax": 462586.0,
+    "width_m": 5699.0,
+    "height_m": 7646.0
+  },
+  {
+    "name": "Zuidplas",
+    "xmin": 97146.5,
+    "ymin": 438515.5,
+    "xmax": 107127.5,
+    "ymax": 453414.5,
+    "width_m": 9981.0,
+    "height_m": 14899.0
   }
 ]
